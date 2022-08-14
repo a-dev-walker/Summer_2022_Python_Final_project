@@ -49,12 +49,16 @@ def blit_alpha(target, source, location, opacity):
 
 
 #Drawing the play window 
-def draw_window(playchips, phantom_piece):
+def draw_window(play_chip_group, phantom_piece):
     WIN.fill(WHITE)
     
-    
-    for chip in playchips:
-        WIN.blit(playchips[chip].image,playchips[chip].rect.x,playchips[chip].rect.y)
+    play_chip_group.draw(WIN)
+
+
+    # for chip in playchips:
+    #     print(chip.rect.x, chip.rect.y)
+    #     print(chip.image)
+    #     WIN.blit(chip.image,(chip.rect.x,chip.rect.y))
 
     blit_alpha(WIN,phantom_piece.image,(phantom_piece.rect.x,phantom_piece.rect.y),100)
 
@@ -124,29 +128,29 @@ def next_open_row(backend_board,column):
             return row
 
 # Filling in backend board with pieces
-def placing_a_piece(backend_board,row,column, player_piece):
-    backend_board[row][column] == player_piece
+def placing_a_piece(backend_board,row,column, player_turn):
+    backend_board[row][column] = player_turn + 1
 
 
 # Get front end information on how far to move piece 
 # NOte I swapped the order of the tuples for starting loc and ending loc because the play grid is flipped from the backend grid
 def how_far_to_drop_piece(board,row,column):
-    starting_loc = [ -128, 9 + (column-1) * PIECE_SIZE[0]]
-    ending_loc = [17 + row * PIECE_SIZE[1],9 + (column-1) * PIECE_SIZE[0]]
+    starting_loc = [ 9 + (column) * PIECE_SIZE[0], -128]
+    ending_loc = [17 + row * PIECE_SIZE[1],9 + (column) * PIECE_SIZE[0]]
 
     return starting_loc,ending_loc
 
 
-def updating_chip_locations(playchips):
-    for chip in playchips:
-        chip.update()
+# def updating_chip_locations(playchips):
+#     for chip in playchips:
+#         chip.update()
 
 
 def updating_phantom_chip(backend_board,phantom_chip,column,player_turn):
     if column_validity_check(backend_board,column):
         open_row = BOARD_ROW_COUNT - next_open_row(backend_board,column) -1
 
-        starting_location , ending_location = how_far_to_drop_piece(backend_board,open_row,column+1)
+        starting_location , ending_location = how_far_to_drop_piece(backend_board,open_row,column)
 
         phantom_chip.rect.top = ending_location[0]
         phantom_chip.rect.left = ending_location[1]
@@ -157,25 +161,30 @@ def updating_phantom_chip(backend_board,phantom_chip,column,player_turn):
             phantom_chip.image = pygame.transform.scale(pygame.image.load(BLACK_PIECE_LOCATION),PIECE_SCALE)
 
 
-def updating_turn_counts(player_turn,overall_turn_count):
-    player_turn += 1
-    player_turn = player_turn % 2
-    overall_turn_count += 1
 
 
 
 # Class object to make chips for the board
 # Assistance for this section was obtained at: http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/games/8.html
 class Chip(pygame.sprite.Sprite):
-    def __init__(self, image_file,initial_location,final_location):
+    def __init__(self, image_file,starting_location,ending_location,name):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(pygame.image.load(image_file),PIECE_SCALE)
-        self.rect = self.image.get_rect(topleft=(initial_location[0],initial_location[1]))
-        self.final_location = final_location
+        self.rect = self.image.get_rect()
+        self.rect.x = starting_location[0]
+        self.rect.y = starting_location[1]
+        self.ending_location = ending_location
+        self.name = name
+
+
+
 
     def update(self):
-        if self.rect.top < self.final_location[1]:
-            self.rect.top += 1
+        print(f" current location y: {self.rect.y}")
+        print(f" current location x: {self.rect.x}")
+        print(f" final location y: {self.ending_location[0]}")
+        if self.rect.y < self.ending_location[0]:
+            self.rect.y += 4
 
 
 
@@ -190,16 +199,16 @@ def main():
     player_turn = 0
     overall_turn_count = 0
     playchips = []
+    play_chips_group = pygame.sprite.Group()
 
     base_chip_name_val = "chip_from_turn_"
 
-    base_chip_name_template = "{} = \"{}\""
-
+    #base_chip_name_template = "{} = \"{}\"
     
 
     backend_board = create_backend_board(BOARD_ROW_COUNT, BOARD_COLUMN_COUNT)
 
-    phantom_chip = Chip(RED_PIECE_LOCATION, (-128,-128),[-128,-128])
+    phantom_chip = Chip(RED_PIECE_LOCATION, (-128,-128),[-128,-128],"phantom_chip")
 
     # new_red = Chip(RED_PIECE_LOCATION,(9,-128),[9,400])
     # playchips.append(new_red)
@@ -219,32 +228,92 @@ def main():
                 if player_turn == 0:
                     
                     if column_validity_check(backend_board,mouse_col):
-                        print("valid col")
+                        #print("valid col")
                         next_row = next_open_row(backend_board,mouse_col)
-                        starting_loc, ending_loc = how_far_to_drop_piece(backend_board,next_row,mouse_col)
 
                         placing_a_piece(backend_board,next_row,mouse_col,player_turn)
 
+                        front_end_next_row = BOARD_ROW_COUNT - next_row - 1
 
-                        #Create the name of the next piece to be created
-                        next_chip_name = base_chip_name_val + str(overall_turn_count)
+                        print(next_row)
+                        starting_loc, ending_loc = how_far_to_drop_piece(backend_board,front_end_next_row,mouse_col)
+
                         
+
+
+                        #Create the name of the next piece to be created and add to playchips
+                        next_chip_name = base_chip_name_val + str(overall_turn_count)
                         print(next_chip_name)
+                        #playchips.append(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
+                        play_chips_group.add(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
 
 
-                        #Create the string of the function for creating said new chip
-                        # got help from https://www.pythonforbeginners.com/basics/convert-string-to-variable-name-in-python#:~:text=is%20pythonforbeginners.com-,String%20Into%20Variable%20Name%20in%20Python%20Using%20the%20vars(),like%20the%20globals()%20function.
-                        next_chip_function_string = f"Chip(RED_PIECE_LOCATION,{starting_loc},{ending_loc}"
-                        #Format an exec statement to make the next chip 
-                        new_chip_statement = base_chip_name_template.format(next_chip_name,next_chip_function_string)
-                        exec(new_chip_statement)
+                        # #Create the string of the function for creating said new chip
+                        # # got help from https://www.pythonforbeginners.com/basics/convert-string-to-variable-name-in-python#:~:text=is%20pythonforbeginners.com-,String%20Into%20Variable%20Name%20in%20Python%20Using%20the%20vars(),like%20the%20globals()%20function.
+                        # next_chip_function_string = f"Chip(RED_PIECE_LOCATION,{starting_loc},{ending_loc}"
+                        # #Format an exec statement to make the next chip 
+                        # new_chip_statement = base_chip_name_template.format(next_chip_name,next_chip_function_string)
+                        # exec(new_chip_statement)
 
-                        #Add the next chip to the playchips array
-                        my_vars = vars()
-                        playchips.append(my_vars[next_chip_name])
+                        # big_new_chip_statement = f'''
 
-                        updating_turn_counts(player_turn,overall_turn_count)
+                        # {next_chip_name} = Chip(RED_PIECE_LOCATION, {starting_loc}, {ending_loc})
+                        # return_me = next_chip_name
+                        
+                        # '''
 
+
+
+                        # Updating player turns and overall turns
+                        player_turn += 1
+                        player_turn = player_turn % 2
+                        overall_turn_count += 1
+
+                        #print(backend_board)
+
+                else: #player 2
+                    if column_validity_check(backend_board,mouse_col):
+                        #print("valid col")
+                        next_row = next_open_row(backend_board,mouse_col)
+
+                        placing_a_piece(backend_board,next_row,mouse_col,player_turn)
+
+                        front_end_next_row = BOARD_ROW_COUNT - next_row - 1
+
+                        print(next_row)
+                        starting_loc, ending_loc = how_far_to_drop_piece(backend_board,front_end_next_row,mouse_col)
+
+                        
+
+
+                        #Create the name of the next piece to be created and add to playchips
+                        next_chip_name = base_chip_name_val + str(overall_turn_count)
+                        print(next_chip_name)
+                        #playchips.append(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
+                        play_chips_group.add(Chip(BLACK_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
+
+
+                        # #Create the string of the function for creating said new chip
+                        # # got help from https://www.pythonforbeginners.com/basics/convert-string-to-variable-name-in-python#:~:text=is%20pythonforbeginners.com-,String%20Into%20Variable%20Name%20in%20Python%20Using%20the%20vars(),like%20the%20globals()%20function.
+                        # next_chip_function_string = f"Chip(RED_PIECE_LOCATION,{starting_loc},{ending_loc}"
+                        # #Format an exec statement to make the next chip 
+                        # new_chip_statement = base_chip_name_template.format(next_chip_name,next_chip_function_string)
+                        # exec(new_chip_statement)
+
+                        # big_new_chip_statement = f'''
+
+                        # {next_chip_name} = Chip(RED_PIECE_LOCATION, {starting_loc}, {ending_loc})
+                        # return_me = next_chip_name
+                        
+                        # '''
+
+
+
+                        # Updating player turns and overall turns
+                        player_turn += 1
+                        player_turn = player_turn % 2
+                        overall_turn_count += 1
+                    
                     
 
                     
@@ -260,15 +329,9 @@ def main():
        
 
         #print(checking_mouse_column(mouse_pos))
-        updating_chip_locations(playchips)
-        draw_window(playchips, phantom_chip)
-
-
-
-        # Update player turn - need to do when swapping characters
-        
-
-
+        #updating_chip_locations(playchips)
+        play_chips_group.update()
+        draw_window(play_chips_group, phantom_chip)
 
 
 
