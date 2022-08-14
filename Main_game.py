@@ -187,13 +187,14 @@ def main():
     #main function variables
     clock = pygame.time.Clock()
     run = True
-    player_turn = 1
+    player_turn = 0
     overall_turn_count = 0
     playchips = []
 
     base_chip_name_val = "chip_from_turn_"
 
     base_chip_name_template = "{} = \"{}\""
+
     
 
     backend_board = create_backend_board(BOARD_ROW_COUNT, BOARD_COLUMN_COUNT)
@@ -218,23 +219,29 @@ def main():
                 if player_turn == 0:
                     
                     if column_validity_check(backend_board,mouse_col):
+                        print("valid col")
                         next_row = next_open_row(backend_board,mouse_col)
                         starting_loc, ending_loc = how_far_to_drop_piece(backend_board,next_row,mouse_col)
 
-                        placing_a_piece({backend_board},{next_row},{player_turn})
+                        placing_a_piece(backend_board,next_row,mouse_col,player_turn)
 
 
                         #Create the name of the next piece to be created
                         next_chip_name = base_chip_name_val + str(overall_turn_count)
+                        
+                        print(next_chip_name)
+
 
                         #Create the string of the function for creating said new chip
+                        # got help from https://www.pythonforbeginners.com/basics/convert-string-to-variable-name-in-python#:~:text=is%20pythonforbeginners.com-,String%20Into%20Variable%20Name%20in%20Python%20Using%20the%20vars(),like%20the%20globals()%20function.
                         next_chip_function_string = f"Chip(RED_PIECE_LOCATION,{starting_loc},{ending_loc}"
                         #Format an exec statement to make the next chip 
                         new_chip_statement = base_chip_name_template.format(next_chip_name,next_chip_function_string)
                         exec(new_chip_statement)
 
                         #Add the next chip to the playchips array
-                        playchips.append(next_chip_name)
+                        my_vars = vars()
+                        playchips.append(my_vars[next_chip_name])
 
                         updating_turn_counts(player_turn,overall_turn_count)
 
