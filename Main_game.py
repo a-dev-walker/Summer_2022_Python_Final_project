@@ -84,30 +84,33 @@ def checking_mouse_column(mouse_position):
 
 # The math needed to check if a given player has won -- Currently not working
 # This math was taken from the following url: "https://www.askpython.com/python/examples/connect-four-game"
+# winner
 def winning_move(board, piece):
-    # Check horizontal locations for win
+    # horizontal check from all starting positions for a win, subtracting 3 because 3 columns wouldn't yield a win
     for c in range(BOARD_COLUMN_COUNT-3):
         for r in range(BOARD_ROW_COUNT):
             if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece:
                 return True
- 
-    # Check vertical locations for win
+
+    # vertical location check
     for c in range(BOARD_COLUMN_COUNT):
         for r in range(BOARD_ROW_COUNT-3):
             if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
                 return True
- 
-    # Check positively sloped diaganals
+
+    # positively sloped diagonals check
     for c in range(BOARD_COLUMN_COUNT-3):
         for r in range(BOARD_ROW_COUNT-3):
             if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
                 return True
- 
-    # Check negatively sloped diaganals
+
+    # negatively sloped diagonals check
     for c in range(BOARD_COLUMN_COUNT-3):
+        #starts on 4th row for row count, 3rd index
         for r in range(3, BOARD_ROW_COUNT):
             if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
                 return True
+
 
 
 
@@ -153,8 +156,10 @@ def updating_phantom_chip(backend_board,phantom_chip,column,player_turn):
         #Determining the color of the chip to display
         if player_turn == 0:
             phantom_chip.image = pygame.transform.scale(pygame.image.load(RED_PIECE_LOCATION),PIECE_SCALE)
-        else:
+        elif player_turn == 1:
             phantom_chip.image = pygame.transform.scale(pygame.image.load(BLACK_PIECE_LOCATION),PIECE_SCALE)
+        else:
+            phantom_chip.rect.top = -500
 
     # If the column isn't viable, then don't display anything
     else: 
@@ -181,7 +186,7 @@ class Chip(pygame.sprite.Sprite):
         # print(f" current location x: {self.rect.x}")
         # print(f" final location y: {self.ending_location[0]}")
         if self.rect.y < self.ending_location[0]:
-            self.rect.y += 4
+            self.rect.y += 5
 
 
 
@@ -212,14 +217,17 @@ def main():
             mouse_pos = pygame.mouse.get_pos()
             mouse_col = checking_mouse_column(mouse_pos) - 1
 
-            # Updating where the phantom chip should be 
-            updating_phantom_chip(backend_board,phantom_chip,mouse_col,player_turn)
+            # Updating where the phantom chip should be
+            if not end_game:
+                updating_phantom_chip(backend_board,phantom_chip,mouse_col,player_turn)
+            else:
+                updating_phantom_chip(backend_board,phantom_chip,mouse_col,3)
 
             # Handles when the player hits the "x" button to quit out of the program
             if event.type == pygame.QUIT:
                 run = False
             #Handling if a player is pressing the eft mouse button down
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT and not end_game:
 
                 # Handles player 1's turn
                 if player_turn == 0:
@@ -244,6 +252,7 @@ def main():
                         player_turn = player_turn % 2
                         overall_turn_count += 1
 
+                        print(np.flip(backend_board,0))
 
                         #Check to see if this player has won with this move
                         if winning_move(backend_board, 1):
@@ -273,13 +282,15 @@ def main():
                         player_turn = player_turn % 2
                         overall_turn_count += 1
 
+                        print(np.flip(backend_board,0))
+
                         #Check to see if this player has won with this move
                         if winning_move(backend_board, 2):
-                            label = MY_FONT.render("Player 2 wins!!", 1, BLACK_COLOR)
+                            label = MY_FONT.render("Player 2 wins!!", 1, (0,0,0))
                             end_game = True
                     
        
-
+        print(end_game)
         
         # Update the locations for all the player pieces and phantom chip
         play_chips_group.update()
@@ -289,10 +300,11 @@ def main():
 
         # If a player has won the game, display the win label and wait half a minute before quitting out
         if end_game:
-            if end_game_tick_count > 3000:
+            if end_game_tick_count > 300:
                 run = False
             else:
                 WIN.blit(label,(40,10))
+                pygame.display.update()
                 end_game_tick_count += 1
         
 

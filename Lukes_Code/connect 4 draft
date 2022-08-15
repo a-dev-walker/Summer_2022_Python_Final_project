@@ -178,5 +178,3 @@ while not game_over:
                 
             if game_over:
                 pygame.time.wait(10000)
-
-# goal is to create a matrix where we are checking to see if the position being selected has been filled (1), or is empty (0)
