@@ -266,7 +266,7 @@ def main():
 
                         #Create the name of the next piece to be created and add to playchips group
                         next_chip_name = base_chip_name_val + str(overall_turn_count)
-                        play_chips_group.add(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
+                        play_chips_group.add(Chip(BLACK_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
 
                         # Updating player turns and overall turns
                         player_turn += 1
