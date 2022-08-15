@@ -1,6 +1,3 @@
-from cmath import rect
-from tkinter.tix import COLUMN
-from turtle import back, color
 import pygame
 import os
 import numpy as np
@@ -27,7 +24,7 @@ WIN = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Intro to Python Connect Four")
 
 
-#Images
+# Preparing images for pieces and board
 BOARD_IMAGE = pygame.image.load(
     os.path.join('Assets','board_png_transparent_test.png'))
 BOARD = pygame.transform.scale(BOARD_IMAGE, (900,850))
@@ -38,7 +35,7 @@ RED_PIECE = pygame.transform.scale(RED_PIECE_IMAGE, PIECE_SCALE)
 BLACK_PIECE_IMAGE = pygame.image.load(BLACK_PIECE_LOCATION)
 BLACK_PIECE = pygame.transform.scale(BLACK_PIECE_IMAGE, PIECE_SCALE)
 
-
+# Method to create backend board for completing math operations
 def create_backend_board(rows, columns):
     backend_board = np.zeros((rows, columns))
     return backend_board
@@ -62,7 +59,6 @@ def draw_window(play_chip_group, phantom_piece):
     play_chip_group.draw(WIN)
 
     blit_alpha(WIN,phantom_piece.image,(phantom_piece.rect.x,phantom_piece.rect.y),100)
-
 
     WIN.blit(BOARD, (0,0))
     pygame.display.update()
@@ -318,4 +314,3 @@ def main():
 # Check if this program is being run or imported; won't run if imported
 if __name__ == "__main__":
     main()
- 
