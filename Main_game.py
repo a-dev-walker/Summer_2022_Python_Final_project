@@ -61,17 +61,7 @@ def draw_window(play_chip_group, phantom_piece):
     
     play_chip_group.draw(WIN)
 
-
-    # for chip in playchips:
-    #     print(chip.rect.x, chip.rect.y)
-    #     print(chip.image)
-    #     WIN.blit(chip.image,(chip.rect.x,chip.rect.y))
-
     blit_alpha(WIN,phantom_piece.image,(phantom_piece.rect.x,phantom_piece.rect.y),100)
-
-    #blit_alpha(WIN,pieces[0].image,(pieces[0].rect.x,pieces[0].rect.y),128)
-    # WIN.blit(BLACK_PIECE,(135+128,145+128))
-    # blit_alpha(WIN,RED_PIECE,(9+128,17+128),56)
 
 
     WIN.blit(BOARD, (0,0))
@@ -92,7 +82,7 @@ def checking_mouse_column(mouse_position):
     
 
 
-# The math needed to check if a given player has won
+# The math needed to check if a given player has won -- Currently not working
 # This math was taken from the following url: "https://www.askpython.com/python/examples/connect-four-game"
 def winning_move(board, piece):
     # Check horizontal locations for win
@@ -148,29 +138,27 @@ def how_far_to_drop_piece(board,row,column):
     return starting_loc,ending_loc
 
 
-# def updating_chip_locations(playchips):
-#     for chip in playchips:
-#         chip.update()
-
-
+# Code to update the location of the phantom chip to match where the player's mouse is 
 def updating_phantom_chip(backend_board,phantom_chip,column,player_turn):
     if column_validity_check(backend_board,column):
         open_row = BOARD_ROW_COUNT - next_open_row(backend_board,column) -1
 
         starting_location , ending_location = how_far_to_drop_piece(backend_board,open_row,column)
 
+        #Setting the location of the chip
         phantom_chip.rect.top = ending_location[0]
         phantom_chip.rect.left = ending_location[1]
 
+
+        #Determining the color of the chip to display
         if player_turn == 0:
             phantom_chip.image = pygame.transform.scale(pygame.image.load(RED_PIECE_LOCATION),PIECE_SCALE)
         else:
             phantom_chip.image = pygame.transform.scale(pygame.image.load(BLACK_PIECE_LOCATION),PIECE_SCALE)
-    else:
+
+    # If the column isn't viable, then don't display anything
+    else: 
         phantom_chip.rect.top = -500
-
-
-
 
 
 # Class object to make chips for the board
@@ -186,16 +174,14 @@ class Chip(pygame.sprite.Sprite):
         self.name = name
 
 
-
-
+    # Update function innate to Sprite objects
+    # Place object features you wish to change when calling update here
     def update(self):
         # print(f" current location y: {self.rect.y}")
         # print(f" current location x: {self.rect.x}")
         # print(f" final location y: {self.ending_location[0]}")
         if self.rect.y < self.ending_location[0]:
             self.rect.y += 4
-
-
 
 
 
@@ -210,99 +196,98 @@ def main():
     play_chips_group = pygame.sprite.Group()
     end_game = False
     end_game_tick_count = 0
-
     base_chip_name_val = "chip_from_turn_"
     
-
+    #Initializing the backend gameboard for math
     backend_board = create_backend_board(BOARD_ROW_COUNT, BOARD_COLUMN_COUNT)
 
     #initializing the phantom piece
     phantom_chip = Chip(RED_PIECE_LOCATION, (-128,-128),[-128,-128],"phantom_chip")
 
-    # new_red = Chip(RED_PIECE_LOCATION,(9,-128),[9,400])
-    # playchips.append(new_red)
-
     #Checking what event state the game is currently in
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
+            # Get the location of the mouse to know where to place pieces
             mouse_pos = pygame.mouse.get_pos()
             mouse_col = checking_mouse_column(mouse_pos) - 1
 
+            # Updating where the phantom chip should be 
             updating_phantom_chip(backend_board,phantom_chip,mouse_col,player_turn)
+
+            # Handles when the player hits the "x" button to quit out of the program
             if event.type == pygame.QUIT:
                 run = False
             #Handling if a player is pressing the eft mouse button down
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT:
+
+                # Handles player 1's turn
                 if player_turn == 0:
                     
+                    # Make sure that the column that the player wants to place a piece on is not full
                     if column_validity_check(backend_board,mouse_col):
-                        #print("valid col")
+                        
+                        # Placing the piece on the backend
                         next_row = next_open_row(backend_board,mouse_col)
-
                         placing_a_piece(backend_board,next_row,mouse_col,player_turn)
-
                         front_end_next_row = BOARD_ROW_COUNT - next_row - 1
 
-                        print(next_row)
+                        # Finding out where to place the piece on the front end
                         starting_loc, ending_loc = how_far_to_drop_piece(backend_board,front_end_next_row,mouse_col)
 
-
-                        #Create the name of the next piece to be created and add to playchips
+                        #Create the name of the next piece to be created and add to playchips group
                         next_chip_name = base_chip_name_val + str(overall_turn_count)
-                        print(next_chip_name)
-                        #playchips.append(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
                         play_chips_group.add(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
-
 
                         # Updating player turns and overall turns
                         player_turn += 1
                         player_turn = player_turn % 2
                         overall_turn_count += 1
 
+
+                        #Check to see if this player has won with this move
                         if winning_move(backend_board, 1):
                             label = MY_FONT.render("Player 1 wins!!", 1, RED_COLOR)
                             end_game = True
 
 
                 else: #player 2
+
+                    # Make sure that the column that the player wants to place a piece on is not full
                     if column_validity_check(backend_board,mouse_col):
-                        #print("valid col")
+                        
+                        # Placing the piece on the backend
                         next_row = next_open_row(backend_board,mouse_col)
-
                         placing_a_piece(backend_board,next_row,mouse_col,player_turn)
-
                         front_end_next_row = BOARD_ROW_COUNT - next_row - 1
 
-                        print(next_row)
+                        # Finding out where to place the piece on the front end
                         starting_loc, ending_loc = how_far_to_drop_piece(backend_board,front_end_next_row,mouse_col)
 
-                        #Create the name of the next piece to be created and add to playchips
+                        #Create the name of the next piece to be created and add to playchips group
                         next_chip_name = base_chip_name_val + str(overall_turn_count)
-                        print(next_chip_name)
-                        #playchips.append(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
-                        play_chips_group.add(Chip(BLACK_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
+                        play_chips_group.add(Chip(RED_PIECE_LOCATION,starting_loc,ending_loc,next_chip_name))
 
                         # Updating player turns and overall turns
                         player_turn += 1
                         player_turn = player_turn % 2
                         overall_turn_count += 1
 
-
+                        #Check to see if this player has won with this move
                         if winning_move(backend_board, 2):
                             label = MY_FONT.render("Player 2 wins!!", 1, BLACK_COLOR)
                             end_game = True
                     
        
 
-        #print(checking_mouse_column(mouse_pos))
-        #updating_chip_locations(playchips)
+        
+        # Update the locations for all the player pieces and phantom chip
         play_chips_group.update()
         draw_window(play_chips_group, phantom_chip)
 
-        print(backend_board)
+        #print(backend_board)
 
-
+        # If a player has won the game, display the win label and wait half a minute before quitting out
         if end_game:
             if end_game_tick_count > 3000:
                 run = False
@@ -318,7 +303,7 @@ def main():
     pygame.quit()
 
 
-
+# Check if this program is being run or imported; won't run if imported
 if __name__ == "__main__":
     main()
  
