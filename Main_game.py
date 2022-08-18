@@ -2,6 +2,7 @@ import pygame
 import os
 import numpy as np
 
+
 # Initialize pygame
 pygame.init()
 
@@ -64,7 +65,6 @@ def draw_window(play_chip_group, phantom_piece):
     pygame.display.update()
 
 
-
 # Function checking which column the mouse is currently hovering over
 # Returns the count of the column, 1-7, and returns 0 if off the screen
 def checking_mouse_column(mouse_position):
@@ -76,7 +76,6 @@ def checking_mouse_column(mouse_position):
 
     return BOARD_COLUMN_COUNT
     
-
 
 # The math needed to check if a given player has won -- Currently not working
 # This math was taken from the following url: "https://www.askpython.com/python/examples/connect-four-game"
@@ -108,14 +107,13 @@ def winning_move(board, piece):
                 return True
 
 
-
-
 # Check if a given column is full or not
 def column_validity_check(backend_board,column):
     if backend_board[BOARD_ROW_COUNT-1][column] == 0:
         return True
     else:
         return False
+
 
 # Returns which row is the next that's open in the given column
 def next_open_row(backend_board,column):
@@ -183,7 +181,6 @@ class Chip(pygame.sprite.Sprite):
         # print(f" final location y: {self.ending_location[0]}")
         if self.rect.y < self.ending_location[0]:
             self.rect.y += 5
-
 
 
 #Main Game loop 
@@ -285,8 +282,6 @@ def main():
                             label = MY_FONT.render("Player 2 wins!!", 1, (0,0,0))
                             end_game = True
                     
-       
-        print(end_game)
         
         # Update the locations for all the player pieces and phantom chip
         play_chips_group.update()
@@ -302,9 +297,6 @@ def main():
                 WIN.blit(label,(40,10))
                 pygame.display.update()
                 end_game_tick_count += 1
-        
-
-
 
 
     #end of the main game loop; will end game
