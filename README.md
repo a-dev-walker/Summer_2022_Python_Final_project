@@ -10,7 +10,7 @@ We recommend running this code on VS code or another local IDE rather than on go
 
 Pre-requisites: pygame, pygame-menu, numpy, os 
 
-To run please download the entire repository to account for the assets. Run the main-game.py file and enjoy a lively game of connect four.
+To run please download the entire repository to account for the assets. Run the Main_game_with_menu.py file and enjoy a lively game of connect four.
 
 
 Participation:
