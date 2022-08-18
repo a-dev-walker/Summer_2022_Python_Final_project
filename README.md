@@ -2,6 +2,10 @@
 
 Final project for Adam Walker, Charlotte Blewitt, Luke Teitell, and Max La Forest.
 
+
+For our final project we recreated the classic board game, Connect 4, in which players try to win by placing colored pieces into a grid in an attempt to make a line of four pieces of their color. 
+
+
 We recommend running this code on VS code or another local IDE rather than on google colab.
 
 Pre-requisites: pygame, pygame-menu, numpy, os 
